@@ -44,5 +44,31 @@ p{margin:0;font-weight:600;color:var(--mute)}
   <a class="reg" href="https://t.me/vpn_1oo_re_bot?start=site" rel="noopener">Зарегистрироваться</a>
   <p class="hint">Регистрация - в Телеграме</p>
 </main>
+<script>
+/* HUB-055: откуда пришли (Вадим 26.10.2026: «для маркетинговых исследований… посмотреть откуда он пришел»). При первом заходе
+   запоминаем в браузере человека, с какого сайта перешли (или «прямой заход») и рекламную метку utm - на 30 дней; на сайте ничего не
+   хранится. «Зарегистрироваться» несёт это в бот короткой меткой start=s_<откуда>[_<utm>] (Телеграм принимает до 64 знаков). */
+(function () {
+  var KEY = "1oo-src", MAP = [["google.", "g"], ["yandex.", "y"], ["ya.ru", "y"], ["bing.", "b"], ["duckduckgo.", "dd"], ["t.me", "tg"],
+    ["telegram.", "tg"], ["vk.com", "vk"], ["vk.ru", "vk"], ["instagram.", "ig"], ["facebook.", "fb"], ["youtube.", "yt"], ["ok.ru", "ok"],
+    ["mail.ru", "mr"], ["dzen.ru", "dz"], ["tiktok.", "tt"], ["x.com", "x"], ["twitter.", "x"], ["whatsapp.", "wa"]];
+  function code(host) {
+    for (var i = 0; i < MAP.length; i++) if (host.indexOf(MAP[i][0]) >= 0) return MAP[i][1];
+    return "o" + host.replace(/^www\./, "").replace(/[^a-z0-9]/g, "").slice(0, 17);
+  }
+  var src = "", saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+  if (saved && saved.s && Date.now() - saved.t < 30 * 864e5) src = saved.s;
+  else {
+    var host = "", q = new URLSearchParams(location.search);
+    try { host = new URL(document.referrer).hostname.toLowerCase(); } catch (e) {}
+    var utm = [q.get("utm_source"), q.get("utm_campaign")].filter(Boolean).join("-").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 30);
+    src = "s_" + (!host || host === location.hostname ? "d" : code(host)) + (utm ? "_" + utm : "");
+    try { localStorage.setItem(KEY, JSON.stringify({ s: src, t: Date.now() })); } catch (e) {}
+  }
+  var a = document.querySelector("a.reg");
+  if (a && /^s_[a-z0-9]{1,18}(_[a-z0-9-]{1,30})?$/.test(src)) a.href = "https://t.me/vpn_1oo_re_bot?start=" + src;
+})();
+</script>
 </body>
 </html>
